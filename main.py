@@ -11,4 +11,25 @@ class Logger:
 
 
 with Logger():
-    print("Wykonuje obliczenia")
+    print("Wykonuję obliczenia")
+
+
+class FileWriter:
+    """Menedżer kontekstu otwierający plik do zapisu i zawsze go zamykający."""
+
+    def __init__(self, path):
+        self.path = path
+
+    def __enter__(self):
+        self.file = open(self.path, "w")
+        return self.file
+
+    def __exit__(self, exc_type, exc_value, exc_tb):
+        self.file.close()
+        return False
+
+
+with FileWriter("eksperyment.txt") as file:
+    file.write("Próbka 1\n")
+    file.write("Próbka 2\n")
+print("Zapisano plik eksperyment.txt")
