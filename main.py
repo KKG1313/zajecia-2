@@ -44,3 +44,60 @@ try:
         raise ValueError("brak odczynnika")
 except ValueError:
     print("Wyjątek nie został stłumiony: program go zauważył")
+
+
+class SafeDivision:
+    """Menedżer kontekstu tłumiący dzielenie przez zero."""
+
+    def __enter__(self):
+        return self
+
+    def divide(self, a, b):
+        return a / b
+
+    def __exit__(self, exc_type, exc_value, exc_tb):
+        if exc_type is ZeroDivisionError:
+            print("Nie można dzielić przez zero")
+            return True
+        return False
+
+
+# Zadanie 4: dzielenie poprawne
+with SafeDivision() as sd:
+    result = sd.divide(10, 2)
+    print(f"Wynik: {result}")
+
+# Zadanie 4: dzielenie przez zero
+with SafeDivision() as sd:
+    result = sd.divide(10, 0)
+    print(f"Wynik: {result}")
+
+print("Program działa dalej")
+
+class SafeDivision:
+    """Menedżer kontekstu tłumiący dzielenie przez zero."""
+
+    def __enter__(self):
+        return self
+
+    def divide(self, a, b):
+        return a / b
+
+    def __exit__(self, exc_type, exc_value, exc_tb):
+        if exc_type is ZeroDivisionError:
+            print("Nie można dzielić przez zero")
+            return True
+        return False
+
+
+# Zadanie 4: dzielenie poprawne
+with SafeDivision() as sd:
+    result = sd.divide(10, 2)
+    print(f"Wynik: {result}")
+
+# Zadanie 4: dzielenie przez zero
+with SafeDivision() as sd:
+    result = sd.divide(10, 0)
+    print(f"Wynik: {result}")
+
+print("Program działa dalej")
