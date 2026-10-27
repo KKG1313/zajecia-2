@@ -1,7 +1,7 @@
 import random
 from datetime import datetime
 
-from sqlalchemy import Boolean, Column, DateTime, Float, ForeignKey, Integer, String, create_engine, select
+from sqlalchemy import Boolean, Column, DateTime, Float, ForeignKey, Integer, String, create_engine, func, select
 from sqlalchemy.orm import Session, declarative_base, relationship
 
 engine = create_engine("sqlite:///baza.db", echo=False)
@@ -47,3 +47,13 @@ with Session(engine) as session:
 
     for experiment in session.scalars(select(Experiment)).all():
         print(experiment.title, "liczba pomiarów:", len(experiment.data_points))
+
+    
+    stmt = (
+        select(Experiment.title, func.sum(DataPoint.real_value), func.avg(DataPoint.real_value))
+        .join(Experiment.data_points)
+        .group_by(Experiment.id)
+    )
+
+    for title, total, mean in session.execute(stmt):
+        print(title, "suma:", round(total, 3), "średnia:", round(mean, 3))
