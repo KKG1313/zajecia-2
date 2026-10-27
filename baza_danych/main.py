@@ -1,12 +1,17 @@
-import random
-from datetime import datetime
-
-from sqlalchemy import Boolean, Column, DateTime, Float, ForeignKey, Integer, String, create_engine, func, select
-from sqlalchemy.orm import Session, declarative_base, relationship
+from sqlalchemy import Boolean, Column, DateTime, Float, ForeignKey, Integer, String, Table, create_engine
+from sqlalchemy.orm import declarative_base, relationship
 
 engine = create_engine("sqlite:///baza.db", echo=False)
 
 Base = declarative_base()
+
+
+experiment_subject = Table(
+    "experiment_subject",
+    Base.metadata,
+    Column("experiment_id", ForeignKey("experiments.id")),
+    Column("subject_id", ForeignKey("subjects.id")),
+)
 
 
 class Experiment(Base):
@@ -19,6 +24,7 @@ class Experiment(Base):
     finished = Column(Boolean, default=False)
 
     data_points = relationship("DataPoint", back_populates="experiment")
+    subjects = relationship("Subject", secondary=experiment_subject, back_populates="experiments")
 
 
 class DataPoint(Base):
@@ -32,28 +38,10 @@ class DataPoint(Base):
     experiment = relationship("Experiment", back_populates="data_points")
 
 
-Base.metadata.create_all(engine)
+class Subject(Base):
+    __tablename__ = "subjects"
 
-with Session(engine) as session:
-    experiment_a = Experiment(title="Eksperyment A", created_at=datetime.now(), type=1)
-    experiment_b = Experiment(title="Eksperyment B", created_at=datetime.now(), type=2)
+    id = Column(Integer, primary_key=True)
+    gdpr_accepted = Column(Boolean, default=False)
 
-    for _ in range(10):
-        DataPoint(real_value=random.random(), target_value=random.random(), experiment=experiment_a)
-        DataPoint(real_value=random.random(), target_value=random.random(), experiment=experiment_b)
-
-    session.add_all([experiment_a, experiment_b])
-    session.commit()
-
-    for experiment in session.scalars(select(Experiment)).all():
-        print(experiment.title, "liczba pomiarów:", len(experiment.data_points))
-
-    
-    stmt = (
-        select(Experiment.title, func.sum(DataPoint.real_value), func.avg(DataPoint.real_value))
-        .join(Experiment.data_points)
-        .group_by(Experiment.id)
-    )
-
-    for title, total, mean in session.execute(stmt):
-        print(title, "suma:", round(total, 3), "średnia:", round(mean, 3))
+    experiments = relationship("Experiment", secondary=experiment_subject, back_populates="subjects")
